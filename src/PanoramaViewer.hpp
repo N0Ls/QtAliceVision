@@ -20,73 +20,71 @@
 #include <memory>
 
 
+namespace qtAliceVision {
 
-namespace qtAliceVision
+
+/**
+    * @brief Load and display image.
+    */
+class PanoramaViewer : public QQuickItem
 {
-    /**
-     * @brief Load and display image.
-     */
-    class PanoramaViewer : public QQuickItem
+Q_OBJECT
+    /// Path to image
+    Q_PROPERTY(QSize textureSize MEMBER _textureSize NOTIFY textureSizeChanged)
+    ///
+    Q_PROPERTY(QSize sourceSize READ sourceSize NOTIFY sourceSizeChanged)
+
+    Q_PROPERTY(bool clearBeforeLoad MEMBER _clearBeforeLoad NOTIFY clearBeforeLoadChanged)
+
+    Q_PROPERTY(QVariantMap imagesData READ imagesData NOTIFY imagesDataChanged)
+
+
+public:
+    explicit PanoramaViewer(QQuickItem* parent = nullptr);
+    ~PanoramaViewer() override;
+
+    QSize sourceSize() const
     {
-        Q_OBJECT
-            /// Path to image
-            Q_PROPERTY(QSize textureSize MEMBER _textureSize NOTIFY textureSizeChanged)
-            ///
-            Q_PROPERTY(QSize sourceSize READ sourceSize NOTIFY sourceSizeChanged)
+        return _sourceSize;
+    }
 
-            Q_PROPERTY(bool clearBeforeLoad MEMBER _clearBeforeLoad NOTIFY clearBeforeLoadChanged)
+    const QVariantMap& metadata() const
+    {
+        return _metadata;
+    }
 
-            Q_PROPERTY(QVariantMap imagesData READ imagesData NOTIFY imagesDataChanged)
+    const QVariantMap& imagesData() const
+    {
+        return _imagesData;
+    }
 
+public:
+    Q_SIGNAL void clearBeforeLoadChanged();
+    Q_SIGNAL void textureSizeChanged();
+    Q_SIGNAL void sourceSizeChanged();
+    Q_SIGNAL void imageChanged();
+    Q_SIGNAL void metadataChanged();
+    Q_SIGNAL void sfmChanged();
+    Q_SIGNAL void imagesDataChanged(const QVariantMap& imagesData);
 
-    public:
-        explicit PanoramaViewer(QQuickItem* parent = nullptr);
-        ~PanoramaViewer() override;
+    Q_INVOKABLE void setSfmPath(const QString& path);
 
-        QSize sourceSize() const
-        {
-            return _sourceSize;
-        }
+private:
+    /// Custom QSGNode update
+    QSGNode* updatePaintNode(QSGNode* oldNode, QQuickItem::UpdatePaintNodeData* data) override;
+    void computeInputImages();
 
-        const QVariantMap& metadata() const
-        {
-            return _metadata;
-        }
+private:
+    bool _clearBeforeLoad = true;
 
-        const QVariantMap& imagesData() const
-        {
-            return _imagesData;
-        }
+    QSize _textureSize;
+    QSize _sourceSize = QSize(0, 0);
 
-    public:
-        Q_SIGNAL void clearBeforeLoadChanged();
-        Q_SIGNAL void textureSizeChanged();
-        Q_SIGNAL void sourceSizeChanged();
-        Q_SIGNAL void imageChanged();
-        Q_SIGNAL void metadataChanged();
-        Q_SIGNAL void sfmChanged();
-        Q_SIGNAL void imagesDataChanged(const QVariantMap& imagesData);
-        
-        Q_INVOKABLE void setSfmPath(const QString& path);
+    QVariantMap _metadata;
 
-
-
-    private:
-        /// Custom QSGNode update
-        QSGNode* updatePaintNode(QSGNode* oldNode, QQuickItem::UpdatePaintNodeData* data) override;
-        void computeInputImages();
-
-    private:
-        bool _clearBeforeLoad = true;
-
-        QSize _textureSize;
-        QSize _sourceSize = QSize(0, 0);
-
-        QVariantMap _metadata;
-
-        QString _sfmPath;
-        QVariantMap _imagesData;
-    };
+    QString _sfmPath;
+    QVariantMap _imagesData;
+};
 
 }  // ns qtAliceVision
 

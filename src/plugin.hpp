@@ -35,6 +35,8 @@ public:
         qmlRegisterType<MViewStats>(uri, 1, 0, "MViewStats");
         qmlRegisterType<MSfMDataStats>(uri, 1, 0, "MSfMDataStats");
         qmlRegisterUncreatableType<MFeature>(uri, 1, 0, "MFeature", "Cannot create Feature instances from QML.");
+
+        qRegisterMetaType<Surface*>("Surface*");
         qRegisterMetaType<QList<MFeature*>>( "QList<MFeature*>" ); // for usage in signals/slots
         qRegisterMetaType<QList<QPointF*>>("QList<QPointF*>");
         qRegisterMetaType<QQmlListProperty<QPointF>>("QQmlListProperty<QPointF>");

@@ -29,8 +29,7 @@ class FloatImageIORunnable : public QObject, public QRunnable
     Q_OBJECT
 
 public:
-
-    explicit FloatImageIORunnable(const QUrl& path, bool insidePanorama = false, QObject* parent = nullptr);
+    explicit FloatImageIORunnable(const QUrl& path, int downscaleLevel = 0, QObject* parent = nullptr);
 
     /// Load image at path
     Q_SLOT void run() override;
@@ -40,7 +39,7 @@ public:
 
 private:
     QUrl _path;
-    bool _insidePanorama;
+    int _downscaleLevel;
 };
 
 /**
@@ -48,34 +47,33 @@ private:
     */
 class FloatImageViewer : public QQuickItem
 {
-    Q_OBJECT
-        /// Path to image
-        Q_PROPERTY(QUrl source MEMBER _source NOTIFY sourceChanged)
-        /// 
-        Q_PROPERTY(float gamma MEMBER _gamma NOTIFY gammaChanged)
-        /// 
-        Q_PROPERTY(float gain MEMBER _gain NOTIFY gainChanged)
-        ///
-        Q_PROPERTY(QSize textureSize MEMBER _textureSize NOTIFY textureSizeChanged)
-        ///
-        Q_PROPERTY(QSize sourceSize READ sourceSize NOTIFY sourceSizeChanged)
-        /// Whether the image is currently being loaded from file
-        Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
-        /// Whether to clear image between two loadings
-        Q_PROPERTY(bool clearBeforeLoad MEMBER _clearBeforeLoad NOTIFY clearBeforeLoadChanged)
+Q_OBJECT
+    /// Path to image
+    Q_PROPERTY(QUrl source MEMBER _source NOTIFY sourceChanged)
+    /// 
+    Q_PROPERTY(float gamma MEMBER _gamma NOTIFY gammaChanged)
+    /// 
+    Q_PROPERTY(float gain MEMBER _gain NOTIFY gainChanged)
+    ///
+    Q_PROPERTY(QSize textureSize MEMBER _textureSize NOTIFY textureSizeChanged)
+    ///
+    Q_PROPERTY(QSize sourceSize READ sourceSize NOTIFY sourceSizeChanged)
+    /// Whether the image is currently being loaded from file
+    Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
+    /// Whether to clear image between two loadings
+    Q_PROPERTY(bool clearBeforeLoad MEMBER _clearBeforeLoad NOTIFY clearBeforeLoadChanged)
 
-        Q_PROPERTY(EChannelMode channelMode MEMBER _channelMode NOTIFY channelModeChanged)
+    Q_PROPERTY(EChannelMode channelMode MEMBER _channelMode NOTIFY channelModeChanged)
 
-        Q_PROPERTY(QVariantMap metadata READ metadata NOTIFY metadataChanged)
+    Q_PROPERTY(QVariantMap metadata READ metadata NOTIFY metadataChanged)
 
-        Q_PROPERTY(QList<QPoint> vertices READ vertices NOTIFY verticesChanged)
+    Q_PROPERTY(int downscaleLevel MEMBER _downscaleLevel NOTIFY downscaleLevelChanged)
 
-        Q_PROPERTY(QColor gridColor READ gridColor NOTIFY gridColorChanged)
-        
+    Q_PROPERTY(Surface* surface READ getSurfacePtr NOTIFY surfaceChanged)
 
 public:
     explicit FloatImageViewer(QQuickItem* parent = nullptr);
-    ~FloatImageViewer() override;
+    ~FloatImageViewer();
 
     bool loading() const
     {
@@ -94,16 +92,6 @@ public:
         return _metadata;
     }
 
-    QList<QPoint> vertices() const 
-    { 
-        return _surface.vertices(); 
-    }
-
-    QColor gridColor() 
-    {
-        return _surface.gridColor();
-    }
-
     enum class EChannelMode : quint8 { RGBA, RGB, R, G, B, A };
     Q_ENUM(EChannelMode)
 
@@ -118,33 +106,14 @@ public:
     Q_SIGNAL void channelModeChanged();
     Q_SIGNAL void imageChanged();
     Q_SIGNAL void metadataChanged();
-    Q_SIGNAL void verticesChanged(bool reinit);
-    Q_SIGNAL void gridColorChanged();
-    Q_SIGNAL void sfmChanged();
+    Q_SIGNAL void downscaleLevelChanged();
+    Q_SIGNAL void surfaceChanged();
 
-    Q_INVOKABLE QVector4D pixelValueAt(int x, int y);
-    Q_INVOKABLE QPoint getVertex(int index);
-    Q_INVOKABLE void setVertex(int index, float x, float y);
-    Q_INVOKABLE void displayGrid(bool display);
-    Q_INVOKABLE void setGridColorQML(const QColor& color);
-    Q_INVOKABLE void defaultControlPoints();
-    Q_INVOKABLE void resized();
-    Q_INVOKABLE bool reinit();
-    Q_INVOKABLE void hasDistortion(bool distortion);
-    Q_INVOKABLE void updateSubdivisions(int subs);
-    Q_INVOKABLE void setSfmPath(const QString& path);
-    Q_INVOKABLE QPoint getPrincipalPoint();
-    Q_INVOKABLE void setIdView(int id);
-    Q_INVOKABLE void setPanoViewerEnabled(bool state);
-    Q_INVOKABLE void rotatePanoramaRadians(float yawRadians, float pitchRadians);
-    Q_INVOKABLE void rotatePanoramaDegrees(float yawDegrees, float pitchDegrees);
-    Q_INVOKABLE void mouseOver(bool state);
+    Q_INVOKABLE QVector4D pixelValueAt(int x, int y) const;
+
     Q_INVOKABLE void setDownscale(int level);
-    Q_INVOKABLE double getPitch();
-    Q_INVOKABLE double getYaw();
-    Q_INVOKABLE bool isMouseInside(float mx, float my);
 
-
+    Surface* getSurfacePtr() { return &_surface; }
 
 private:
     /// Reload image from source
@@ -176,6 +145,9 @@ private:
 
     Surface _surface;
     bool _createRoot = true;
+
+    // Level of image downscale
+    int _downscaleLevel = 0;
 };
 
 }  // ns qtAliceVision
