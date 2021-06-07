@@ -45,6 +45,8 @@ public:
         qRegisterMetaType<QPointF>("QPointF");
         qRegisterMetaType<FloatImage>();
         qRegisterMetaType<QSharedPointer<FloatImage>>();
+
+        qRegisterMetaType<Surface*>("Surface*");
     }
 };
 
